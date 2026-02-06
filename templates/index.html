@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="id" class="bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rekap Keuangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Animasi untuk Notifikasi */
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-animate { animation: slideDown 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="text-gray-800 pb-24 md:pb-10 relative">
+
+    <div class="fixed top-4 left-0 right-0 z-50 flex justify-center pointer-events-none px-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="space-y-2 pointer-events-auto w-full max-w-md">
+                {% for category, message in messages %}
+                    <div class="toast-animate flex items-center p-4 rounded-xl shadow-lg text-white 
+                        {% if category == 'success' %} bg-green-500 
+                        {% elif category == 'error' %} bg-red-500 
+                        {% else %} bg-blue-500 {% endif %}">
+                        <i class="fas {% if category == 'success' %} fa-check-circle {% elif category == 'error' %} fa-trash-alt {% else %} fa-info-circle {% endif %} text-xl mr-3"></i>
+                        <span class="font-medium text-sm">{{ message }}</span>
+                        <button onclick="this.parentElement.remove()" class="ml-auto opacity-70 hover:opacity-100"><i class="fas fa-times"></i></button>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="bg-white sticky top-0 z-30 shadow-sm border-b border-gray-100">
+        <div class="max-w-md md:max-w-6xl mx-auto py-3 px-4 flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-0">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 md:w-10 md:h-10 bg-blue-600 rounded-xl flex items-center justify-center overflow-hidden shadow-blue-200 shadow-md shrink-0">
+                    <img src="{{ url_for('static', filename='foto.jpg') }}" alt="Profile" class="w-full h-full object-cover">
+                </div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-lg md:text-xl font-bold text-gray-900 tracking-tight">Dompet Gekiik Cantik</h1>
+                    <i class="fas fa-heart text-red-500 animate-pulse"></i>
+                </div>
+            </div>
+            
+            <form action="/" method="GET" class="relative w-full md:w-auto">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span class="text-gray-400 text-xs">📅</span>
+                </div>
+                <select name="period" onchange="this.form.submit()" class="cursor-pointer block appearance-none w-full md:w-64 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 py-2.5 pl-9 pr-8 rounded-lg leading-tight font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all shadow-sm">
+                    {% for option in period_options %}
+                        <option value="{{ option.value }}" {% if option.value == current_selection %}selected{% endif %}>
+                            {{ option.label }} {% if option.is_current %}(Kini){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <main class="p-4 max-w-md md:max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+
+            <div class="md:col-span-5 lg:col-span-4 space-y-4 md:sticky md:top-24">
+                <div class="bg-gradient-to-br from-blue-600 to-blue-500 p-6 rounded-2xl shadow-xl text-white relative overflow-hidden transform transition hover:scale-[1.02] duration-300">
+                    <div class="absolute -top-6 -right-6 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+                    <div class="absolute -bottom-8 -left-4 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+                    <h2 class="text-blue-100 text-sm font-medium mb-1">Sisa Saldo Periode Ini</h2>
+                    <p class="text-3xl font-bold tracking-tight">Rp {{ "{:,.0f}".format(saldo).replace(',', '.') }}</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-green-200 transition-colors group">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                                <i class="fas fa-arrow-down text-green-600 text-sm"></i>
+                            </div>
+                            <p class="text-xs text-gray-500 font-medium uppercase">Masuk</p>
+                        </div>
+                        <p class="text-lg font-bold text-gray-900 truncate">Rp {{ "{:,.0f}".format(pemasukan).replace(',', '.') }}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-red-200 transition-colors group">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                                <i class="fas fa-arrow-up text-red-600 text-sm"></i>
+                            </div>
+                            <p class="text-xs text-gray-500 font-medium uppercase">Keluar</p>
+                        </div>
+                        <p class="text-lg font-bold text-gray-900 truncate">Rp {{ "{:,.0f}".format(pengeluaran).replace(',', '.') }}</p>
+                    </div>
+                </div>
+
+                <button onclick="openAddModal()" class="hidden md:flex w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 px-6 rounded-xl shadow-lg items-center justify-center gap-3 transition-all transform active:scale-95">
+                    <i class="fas fa-plus-circle text-xl"></i>
+                    <span>Tambah Transaksi Baru</span>
+                </button>
+            </div>
+
+            <div class="md:col-span-7 lg:col-span-8">
+                <div class="flex justify-between items-end mb-4">
+                    <h3 class="font-bold text-gray-800 text-lg pl-1">Riwayat Transaksi</h3>
+                    <span class="text-xs text-gray-500 bg-white px-2 py-1 rounded border border-gray-200 md:hidden">Terbaru</span>
+                </div>
+                
+                <div class="space-y-3">
+                    {% for t in transactions %}
+                    <div onclick="openOptionsModal('{{ t._id | string }}', '{{ t.type }}', '{{ t.amount }}', '{{ t.description }}', '{{ t.category }}')" 
+                         class="bg-white p-3.5 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-all active:scale-[0.99]">
+                        
+                        <div class="flex items-center overflow-hidden mr-2">
+                            <div class="w-11 h-11 rounded-full flex items-center justify-center mr-3 shrink-0 
+                                {{ 'bg-green-100 text-green-600' if t.type == 'pemasukan' else 'bg-red-100 text-red-600' }}">
+                                {% if t.type == 'pemasukan' %}
+                                    <i class="fas fa-wallet text-lg"></i>
+                                {% else %}
+                                    {% if t.category == 'Makan' %}<i class="fas fa-utensils text-lg"></i>
+                                    {% elif t.category == 'Camilan' %}<i class="fas fa-cookie-bite text-lg"></i>
+                                    {% elif t.category == 'Bensin' %}<i class="fas fa-gas-pump text-lg"></i>
+                                    {% elif t.category == 'Pakaian' %}<i class="fas fa-tshirt text-lg"></i>
+                                    {% else %}<i class="fas fa-shopping-bag text-lg"></i>{% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="truncate">
+                                <p class="font-semibold text-gray-900 truncate">{{ t.description }}</p>
+                                <div class="flex items-center text-xs text-gray-400 mt-0.5 space-x-2">
+                                    <span>{{ t.date.strftime('%d %b, %H:%M') }}</span>
+                                    {% if t.category != '-' %}
+                                    <span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-md font-medium text-[10px]">{{ t.category }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="text-right shrink-0 whitespace-nowrap">
+                            <p class="font-bold text-sm sm:text-base {{ 'text-green-600' if t.type == 'pemasukan' else 'text-red-600' }}">
+                                {{ '+' if t.type == 'pemasukan' else '-' }} Rp {{ "{:,.0f}".format(t.amount).replace(',', '.') }}
+                            </p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-200">
+                        <i class="fas fa-receipt text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500 font-medium">Belum ada transaksi.</p>
+                        <p class="text-gray-400 text-sm mt-1">Ketuk tombol + untuk menambah.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <button onclick="openAddModal()" class="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center transition-transform active:scale-95 z-30">
+        <i class="fas fa-plus text-2xl"></i>
+    </button>
+
+    <div id="optionsModal" class="fixed inset-0 bg-gray-900/60 z-40 hidden flex items-end sm:items-center justify-center backdrop-blur-sm transition-all duration-300">
+        <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl relative animate-up">
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-600">
+                    <i class="fas fa-cog text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Pilih Aksi</h3>
+                <p class="text-sm text-gray-500">Apa yang ingin Gek Sri lakukan pada data ini?</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="triggerEdit()" class="bg-yellow-50 text-yellow-700 hover:bg-yellow-100 font-bold py-3 px-4 rounded-xl flex flex-col items-center justify-center gap-2 transition-colors">
+                    <i class="fas fa-pen"></i> Edit
+                </button>
+                
+                <form id="deleteForm" method="POST" action="" class="w-full">
+                    <button type="button" onclick="confirmDelete()" class="w-full bg-red-50 text-red-600 hover:bg-red-100 font-bold py-3 px-4 rounded-xl flex flex-col items-center justify-center gap-2 transition-colors">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                </form>
+            </div>
+            
+            <button onclick="closeOptionsModal()" class="w-full mt-4 py-3 rounded-xl border border-gray-200 text-gray-500 font-medium hover:bg-gray-50">
+                Batal
+            </button>
+        </div>
+    </div>
+
+    <div id="transactionModal" class="fixed inset-0 bg-gray-900/60 z-50 hidden flex items-end sm:items-center justify-center backdrop-blur-sm transition-all duration-300">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl transform transition-transform relative max-h-[90vh] overflow-y-auto no-scrollbar" id="modalContent">
+            
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 id="modalTitle" class="text-xl font-bold text-gray-900">Transaksi Baru</h3>
+                    <p class="text-sm text-gray-500">Lengkapi data di bawah ini</p>
+                </div>
+                <button onclick="toggleModal(false)" class="text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors p-2 rounded-full w-10 h-10 flex items-center justify-center">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <form id="transForm" action="/add" method="POST" class="space-y-5">
+                
+                <div class="grid grid-cols-2 gap-3 p-1 bg-gray-100 rounded-xl">
+                    <label class="cursor-pointer">
+                        <input type="radio" id="typePemasukan" name="type" value="pemasukan" class="peer sr-only" checked onchange="toggleCategory()">
+                        <div class="text-center py-2.5 rounded-lg text-sm font-medium text-gray-500 transition-all peer-checked:bg-white peer-checked:text-green-600 peer-checked:shadow-sm">
+                            <i class="fas fa-arrow-down mr-1.5"></i> Pemasukan
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" id="typePengeluaran" name="type" value="pengeluaran" class="peer sr-only" onchange="toggleCategory()">
+                        <div class="text-center py-2.5 rounded-lg text-sm font-medium text-gray-500 transition-all peer-checked:bg-white peer-checked:text-red-600 peer-checked:shadow-sm">
+                            <i class="fas fa-arrow-up mr-1.5"></i> Pengeluaran
+                        </div>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Nominal</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 font-bold text-lg">Rp</span>
+                        <input type="number" id="inputAmount" name="amount" required class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xl font-bold text-gray-800 placeholder-gray-300 transition-all bg-gray-50 focus:bg-white" placeholder="0">
+                    </div>
+                </div>
+
+                <div id="categoryDiv" class="hidden">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Kategori</label>
+                    <div class="relative">
+                        <select id="inputCategory" name="category" class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none text-gray-700 font-medium transition-all">
+                            <option value="Makan">🍽️ Makan</option>
+                            <option value="Camilan">🍿 Camilan</option>
+                            <option value="Bensin">⛽ Bensin</option>
+                            <option value="Pakaian">👕 Pakaian</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Keterangan</label>
+                    <input type="text" id="inputDesc" name="description" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-gray-700 transition-all bg-gray-50 focus:bg-white" placeholder="Contoh: Makan Siang...">
+                </div>
+
+                <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 active:scale-[0.99] transition-all text-lg mt-2">
+                    Simpan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('transactionModal');
+        const modalContent = document.getElementById('modalContent');
+        const categoryDiv = document.getElementById('categoryDiv');
+        const typePengeluaranRadio = document.getElementById('typePengeluaran');
+        const typePemasukanRadio = document.getElementById('typePemasukan');
+        
+        const optionsModal = document.getElementById('optionsModal');
+        const deleteForm = document.getElementById('deleteForm');
+
+        // Variabel sementara untuk menyimpan data transaksi yang dipilih
+        let selectedTrans = {};
+
+        // 1. Logic Modal Form (Buka/Tutup Animasi)
+        function toggleModal(show) {
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('translate-y-full', 'scale-100');
+                    modalContent.classList.add('translate-y-0', 'sm:scale-100');
+                }, 10);
+            } else {
+                modalContent.classList.remove('translate-y-0', 'sm:scale-100');
+                modalContent.classList.add('translate-y-full', 'scale-100');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        // 2. Logic Kategori (Show/Hide)
+        function toggleCategory() {
+            if (typePengeluaranRadio.checked) {
+                categoryDiv.classList.remove('hidden');
+            } else {
+                categoryDiv.classList.add('hidden');
+            }
+        }
+
+        // 3. Buka Modal "TAMBAH BARU" (Reset Form)
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = "Transaksi Baru";
+            document.getElementById('transForm').action = "/add";
+            document.getElementById('btnSubmit').innerText = "Simpan";
+            document.getElementById('btnSubmit').classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+            document.getElementById('btnSubmit').classList.add('bg-blue-600', 'hover:bg-blue-700');
+
+            // Reset Inputs
+            document.getElementById('inputAmount').value = "";
+            document.getElementById('inputDesc').value = "";
+            typePemasukanRadio.checked = true;
+            toggleCategory();
+            
+            toggleModal(true);
+        }
+
+        // 4. Buka Modal "OPSI" (Saat klik list)
+        function openOptionsModal(id, type, amount, desc, category) {
+            selectedTrans = { id, type, amount, desc, category };
+            
+            // Set URL Hapus
+            deleteForm.action = `/delete/${id}`;
+            
+            optionsModal.classList.remove('hidden');
+        }
+
+        function closeOptionsModal() {
+            optionsModal.classList.add('hidden');
+        }
+
+        // 5. Eksekusi Edit (Dari Modal Opsi -> Buka Modal Form)
+        function triggerEdit() {
+            closeOptionsModal();
+            
+            // Ubah Tampilan Modal jadi "Edit Mode"
+            document.getElementById('modalTitle').innerText = "Edit Transaksi";
+            document.getElementById('transForm').action = `/edit/${selectedTrans.id}`;
+            document.getElementById('btnSubmit').innerText = "Update Data";
+            
+            // Ganti warna tombol jadi kuning biar beda
+            document.getElementById('btnSubmit').classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            document.getElementById('btnSubmit').classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+
+            // Isi Form dengan Data Lama
+            document.getElementById('inputAmount').value = selectedTrans.amount;
+            document.getElementById('inputDesc').value = selectedTrans.desc;
+            
+            if (selectedTrans.type === 'pengeluaran') {
+                typePengeluaranRadio.checked = true;
+                document.getElementById('inputCategory').value = selectedTrans.category;
+            } else {
+                typePemasukanRadio.checked = true;
+            }
+            toggleCategory();
+
+            toggleModal(true);
+        }
+
+        // 6. Konfirmasi Hapus
+        function confirmDelete() {
+            if(confirm("Yakin ingin menghapus data ini?")) {
+                deleteForm.submit();
+            }
+        }
+
+        // Close Modals on Outside Click
+        modal.addEventListener('click', (e) => { if (e.target === modal) toggleModal(false); });
+        optionsModal.addEventListener('click', (e) => { if (e.target === optionsModal) closeOptionsModal(); });
+
+        // Auto remove toast after 3 seconds
+        setTimeout(() => {
+            const toasts = document.querySelectorAll('.toast-animate');
+            toasts.forEach(t => t.remove());
+        }, 3000);
+
+    </script>
+</body>
+</html>
