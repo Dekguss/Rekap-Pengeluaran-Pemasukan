@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from pymongo import MongoClient
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from dateutil.relativedelta import relativedelta
-from bson.objectid import ObjectId # Penting untuk hapus/edit by ID
+from bson.objectid import ObjectId
 import os
 from dotenv import load_dotenv
 
@@ -17,13 +17,16 @@ client = MongoClient(os.getenv('MONGO_URI'))
 db = client[os.getenv('DB_NAME')]
 collection = db['transactions']
 
+# Set timezone ke WITA (UTC+8)
+WITA = timezone(timedelta(hours=8))
+
 # --- Helper Functions (Sama seperti sebelumnya) ---
 def get_current_period_start():
-    today = datetime.now()
+    today = datetime.now(WITA)
     if today.day >= 25:
-        return datetime(today.year, today.month, 25)
+        return datetime(today.year, today.month, 25, tzinfo=WITA)
     else:
-        return datetime(today.year, today.month, 25) - relativedelta(months=1)
+        return (datetime(today.year, today.month, 25, tzinfo=WITA) - relativedelta(months=1))
 
 def get_period_range(start_date):
     end_date = start_date + relativedelta(months=1) - relativedelta(days=1)
@@ -33,7 +36,7 @@ def get_period_range(start_date):
 def generate_period_options(num_months=12):
     options = []
     # Set the start date to January 25, 2026
-    jan_2026 = datetime(2026, 1, 25)
+    jan_2026 = datetime(2026, 1, 25, tzinfo=WITA)
     current_start = max(get_current_period_start(), jan_2026)  # Take the later date
     
     # Calculate how many months from the start date to show
@@ -61,6 +64,7 @@ def index():
     selected_date_str = request.args.get('period')
     if selected_date_str:
         start_date = datetime.strptime(selected_date_str, '%Y-%m-%d')
+        start_date = start_date.replace(tzinfo=WITA)
     else:
         start_date = get_current_period_start()
 
@@ -78,12 +82,14 @@ def index():
     current_selection = start_date.strftime('%Y-%m-%d')
 
     return render_template('index.html', 
-                           transactions=transactions, 
-                           pemasukan=total_pemasukan, 
-                           pengeluaran=total_pengeluaran, 
-                           saldo=saldo,
-                           period_options=period_options,
-                           current_selection=current_selection)
+                       transactions=transactions, 
+                       pemasukan=total_pemasukan, 
+                       pengeluaran=total_pengeluaran, 
+                       saldo=saldo,
+                       period_options=period_options,
+                       current_selection=current_selection,
+                       timezone=timezone,  # Tambahkan ini
+                       timedelta=timedelta)  # Dan ini
 
 @app.route('/add', methods=['POST'])
 def add_transaction():
@@ -95,7 +101,7 @@ def add_transaction():
         'type': trans_type,
         'amount': amount,
         'description': description,
-        'date': datetime.now()
+        'date': datetime.now(WITA)  # Simpan dengan timezone WITA
     }
 
     if trans_type == 'pengeluaran':
