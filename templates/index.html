@@ -144,7 +144,7 @@
                                 <p class="font-semibold text-gray-900 truncate">{{ t.description }}</p>
                                 <div class="flex items-center text-xs text-gray-400 mt-0.5 space-x-2">
                                     {% set wita_tz = timezone(timedelta(hours=8)) %}
-                                    <span>{{ t.date.replace(tzinfo=timezone.utc).astimezone(wita_tz).strftime('%d %b %Y, %H:%M') }} WITA</span>
+                                    <span>{{ t.date.replace(tzinfo=timezone.utc).astimezone(wita_tz).strftime('%d %b %Y, %H:%M') }}</span>
                                     {% if t.category != '-' %}
                                     <span class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-md font-medium text-[10px]">{{ t.category }}</span>
                                     {% endif %}
