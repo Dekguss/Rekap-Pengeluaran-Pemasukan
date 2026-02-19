@@ -20,13 +20,16 @@ collection = db['transactions']
 # Set timezone ke WITA (UTC+8)
 WITA = timezone(timedelta(hours=8))
 
-# --- Helper Functions (Sama seperti sebelumnya) ---
+def get_wita_now():
+    """Mendapatkan waktu saat ini dalam timezone WITA"""
+    return datetime.now(timezone.utc).astimezone(WITA)
+
 def get_current_period_start():
-    today = datetime.now(WITA)
+    today = get_wita_now()
     if today.day >= 25:
         return datetime(today.year, today.month, 25, tzinfo=WITA)
     else:
-        return (datetime(today.year, today.month, 25, tzinfo=WITA) - relativedelta(months=1))
+        return (datetime(today.year, today.month, 25, tzinfo=WITA) - relativedelta(months=1)).replace(day=25)
 
 def get_period_range(start_date):
     end_date = start_date + relativedelta(months=1) - relativedelta(days=1)
@@ -97,13 +100,14 @@ def add_transaction():
     amount = int(request.form.get('amount'))
     description = request.form.get('description')
     
+    # Pastikan waktu disimpan dalam UTC
     data = {
         'type': trans_type,
         'amount': amount,
         'description': description,
-        'date': datetime.now(WITA)  # Simpan dengan timezone WITA
+        'date': get_wita_now()  # Disimpan dalam WITA
     }
-
+    
     if trans_type == 'pengeluaran':
         data['category'] = request.form.get('category')
     else:
