@@ -32,8 +32,21 @@ def get_period_range(start_date):
 
 def generate_period_options(num_months=12):
     options = []
-    current_start = get_current_period_start()
-    for i in range(num_months):
+    # Set the start date to January 25, 2026
+    jan_2026 = datetime(2026, 1, 25)
+    current_start = max(get_current_period_start(), jan_2026)  # Take the later date
+    
+    # Calculate how many months from the start date to show
+    months_to_show = 0
+    temp_date = current_start
+    for _ in range(num_months):
+        if temp_date >= jan_2026:
+            months_to_show += 1
+            temp_date -= relativedelta(months=1)
+        else:
+            break
+
+    for i in range(months_to_show):
         start = current_start - relativedelta(months=i)
         start_fmt, end_fmt = get_period_range(start)
         label = f"{start.strftime('%d %b %Y')} - {end_fmt.strftime('%d %b %Y')}"

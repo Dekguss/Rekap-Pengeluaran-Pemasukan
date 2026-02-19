@@ -126,11 +126,18 @@
                                 {% if t.type == 'pemasukan' %}
                                     <i class="fas fa-wallet text-lg"></i>
                                 {% else %}
-                                    {% if t.category == 'Makan' %}<i class="fas fa-utensils text-lg"></i>
-                                    {% elif t.category == 'Camilan' %}<i class="fas fa-cookie-bite text-lg"></i>
+                                    {% if t.category == 'Makan & Minum' %}<i class="fas fa-utensils text-lg"></i>
+                                    {% elif t.category == 'Kecantikan' %}<i class="fas fa-spa text-lg"></i>
+                                    {% elif t.category == 'Kesehatan' %}<i class="fas fa-heartbeat text-lg"></i>
+                                    {% elif t.category == 'Pendidikan' %}<i class="fas fa-graduation-cap text-lg"></i>
+                                    {% elif t.category == 'Bayar Kos' %}<i class="fas fa-home text-lg"></i>
+                                    {% elif t.category == 'Bayar Listrik' %}<i class="fas fa-bolt text-lg"></i>
+                                    {% elif t.category == 'Beli Kuota' %}<i class="fas fa-wifi text-lg"></i>
                                     {% elif t.category == 'Bensin' %}<i class="fas fa-gas-pump text-lg"></i>
                                     {% elif t.category == 'Pakaian' %}<i class="fas fa-tshirt text-lg"></i>
-                                    {% else %}<i class="fas fa-shopping-bag text-lg"></i>{% endif %}
+                                    {% elif t.category == 'Jalan-Jalan' %}<i class="fas fa-route text-lg"></i>
+                                    {% elif t.category == 'Lainnya' %}<i class="fas fa-ellipsis-h text-lg"></i>
+                                    {% else %}<i class="fas fa-wallet text-lg"></i>{% endif %}
                                 {% endif %}
                             </div>
                             <div class="truncate">
@@ -237,10 +244,17 @@
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Kategori</label>
                     <div class="relative">
                         <select id="inputCategory" name="category" class="w-full pl-4 pr-10 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none text-gray-700 font-medium transition-all">
-                            <option value="Makan">🍽️ Makan</option>
-                            <option value="Camilan">🍿 Camilan</option>
+                            <option value="Makan & Minum">🍽️ Makan</option>
+                            <option value="Kecantikan">💄 Kecantikan</option>
+                            <option value="Kesehatan">💊 Kesehatan</option>
+                            <option value="Pendidikan">📚 Pendidikan</option>
+                            <option value="Bayar Kos">🏠 Bayar Kos</option>
+                            <option value="Bayar Listrik">⚡ Bayar Listrik</option>
+                            <option value="Beli Kuota">📱 Beli Kuota</option>
                             <option value="Bensin">⛽ Bensin</option>
                             <option value="Pakaian">👕 Pakaian</option>
+                            <option value="Jalan-Jalan">🚗 Jalan-Jalan</option>
+                            <option value="Lainnya">❓ Lainnya</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
                             <i class="fas fa-chevron-down text-xs"></i>
